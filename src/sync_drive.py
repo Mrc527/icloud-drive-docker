@@ -157,7 +157,7 @@ def sync_directory(
         #    sync_items(i, drive, destination_path, filters, root, files)
 
         concurrent_workers = 10
-        if config is not None and config["app"]["photos"]["workers"] is not None:
+        if config is not None and "drive" in config["app"].keys() and "workers" in config["app"]["drive"].keys():
             concurrent_workers = config["app"]["photos"]["workers"]
 
         try:

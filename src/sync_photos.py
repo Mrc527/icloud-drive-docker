@@ -81,7 +81,7 @@ def sync_album(album, destination_path, file_sizes, config):
         return None
     os.makedirs(destination_path, exist_ok=True)
     concurrent_workers = 10
-    if config is not None and config["app"]["photos"]["workers"] is not None:
+    if config is not None and "photos" in config["app"].keys() and "workers" in config["app"]["photos"].keys():
         concurrent_workers = config["app"]["photos"]["workers"]
     try:
         loop = asyncio.get_event_loop()
