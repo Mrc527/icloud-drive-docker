@@ -191,7 +191,6 @@ def sync_items(i, drive, destination_path, filters, root, files, config):
             if filters and "folders" in filters
             else None,
             root=root,
-            config=config
         )
         if not new_folder:
             return

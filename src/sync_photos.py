@@ -92,7 +92,8 @@ def sync_album(album, destination_path, file_sizes, config):
         else:  # pragma: no cover
             raise
 
-    looper = gather_with_concurrency(concurrent_workers, *[process_photos(photo, file_sizes, destination_path) for photo in album])
+    looper = gather_with_concurrency(concurrent_workers, *[process_photos(photo, file_sizes, destination_path)
+                                                           for photo in album])
 
     loop.run_until_complete(looper)
 
@@ -106,12 +107,14 @@ def sync_photos(config, photos):
                 album=photos.albums[album],
                 destination_path=os.path.join(destination_path, album),
                 file_sizes=filters["file_sizes"],
+                config=config,
             )
     else:
         sync_album(
             album=photos.all,
             destination_path=os.path.join(destination_path, "all"),
             file_sizes=filters["file_sizes"],
+            config=config,
         )
 
 # def enable_debug():

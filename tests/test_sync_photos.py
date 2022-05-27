@@ -265,14 +265,14 @@ class TestSyncPhotos(unittest.TestCase):
 
     def test_sync_album_none_album(self):
         self.assertIsNone(
-            sync_photos.sync_album(None, self.destination_path, ["original"])
+            sync_photos.sync_album(None, self.destination_path, ["original"], None)
         )
 
     def test_sync_album_none_destination_path(self):
-        self.assertIsNone(sync_photos.sync_album({}, None, ["original"]))
+        self.assertIsNone(sync_photos.sync_album({}, None, ["original"]), None)
 
     def test_sync_album_none_file_sizes(self):
-        self.assertIsNone(sync_photos.sync_album({}, self.destination_path, None))
+        self.assertIsNone(sync_photos.sync_album({}, self.destination_path, None, None))
 
     def test_missing_medium_photo_size(self):
         class MockPhoto:
