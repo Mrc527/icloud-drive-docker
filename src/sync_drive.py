@@ -157,62 +157,6 @@ def remove_obsolete(destination_path, files):
     return removed_paths
 
 
-def sync_directory_old(
-        drive,
-        destination_path,
-        items,
-        root,
-        top=True,
-        filters=None,
-        remove=False,
-):
-    files = set()
-    if drive and destination_path and items and root:
-        for i in items:
-            item = drive[i]
-            if item.type in ("folder", "app_library"):
-                new_folder = process_folder(
-                    item=item,
-                    destination_path=destination_path,
-                    filters=filters["folders"]
-                    if filters and "folders" in filters
-                    else None,
-                    root=root,
-                )
-                if not new_folder:
-                    continue
-                files.add(new_folder)
-                files.update(
-                    sync_directory(
-                        drive=item,
-                        destination_path=new_folder,
-                        items=item.dir(),
-                        root=root,
-                        top=False,
-                        filters=filters,
-                    )
-                )
-            elif item.type == "file":
-                if wanted_parent_folder(
-                        filters=filters["folders"]
-                        if filters and "folders" in filters
-                        else None,
-                        root=root,
-                        folder_path=destination_path,
-                ):
-                    process_file(
-                        item=item,
-                        destination_path=destination_path,
-                        filters=filters["file_extensions"]
-                        if filters and "file_extensions" in filters
-                        else None,
-                        files=files,
-                    )
-        if top and remove:
-            remove_obsolete(destination_path=destination_path, files=files)
-    return files
-
-
 def sync_directory(
         drive,
         destination_path,
