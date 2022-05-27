@@ -1,6 +1,9 @@
 __author__ = "Mandar Patil (mandarons@pm.me)"
 
 import os
+
+from typing import List
+
 from src import (
     DEFAULT_RETRY_LOGIN_INTERVAL_SEC,
     LOGGER,
@@ -15,7 +18,7 @@ def config_path_to_string(config_path):
     return " > ".join(config_path)
 
 
-def traverse_config_path(config, config_path: list[str]) -> bool:
+def traverse_config_path(config, config_path: List[str]) -> bool:
     if len(config_path) == 0:
         return True
     if not (config and config_path[0] in config):

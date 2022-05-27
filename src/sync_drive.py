@@ -9,23 +9,7 @@ from icloudpy import exceptions
 import asyncio
 
 from src import config_parser, LOGGER
-
-
-def background(f): # pragma: no cover
-    def wrapped(*args, **kwargs):
-        return asyncio.get_event_loop().run_in_executor(None, f, *args, **kwargs)
-
-    return wrapped
-
-
-async def gather_with_concurrency(n, *tasks): # pragma: no cover
-    semaphore = asyncio.Semaphore(n)
-
-    async def sem_task(task):
-        async with semaphore:
-            return await task
-
-    return await asyncio.gather(*(sem_task(task) for task in tasks))
+from src.tools import background, gather_with_concurrency
 
 
 def wanted_file(filters, file_path):
@@ -177,7 +161,7 @@ def sync_directory(
             if str(e).startswith("There is no current event loop in thread"):
                 loop = asyncio.new_event_loop()
                 asyncio.set_event_loop(loop)
-            else:
+            else:  # pragma: no cover
                 raise
 
         looper = gather_with_concurrency(10, *[sync_items(i, drive, destination_path, filters, root, files)

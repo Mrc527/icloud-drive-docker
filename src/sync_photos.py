@@ -5,22 +5,7 @@ from src import config_parser, LOGGER
 from icloudpy import exceptions
 import asyncio
 
-
-def background(f): # pragma: no cover
-    def wrapped(*args, **kwargs):
-        return asyncio.get_event_loop().run_in_executor(None, f, *args, **kwargs)
-
-    return wrapped
-
-
-async def gather_with_concurrency(n, *tasks): # pragma: no cover
-    semaphore = asyncio.Semaphore(n)
-
-    async def sem_task(task):
-        async with semaphore:
-            return await task
-
-    return await asyncio.gather(*(sem_task(task) for task in tasks))
+from src.tools import background, gather_with_concurrency
 
 
 def generate_file_name(photo, file_size, destination_path):
@@ -101,7 +86,7 @@ def sync_album(album, destination_path, file_sizes):
         if str(e).startswith("There is no current event loop in thread"):
             loop = asyncio.new_event_loop()
             asyncio.set_event_loop(loop)
-        else:
+        else:  # pragma: no cover
             raise
 
     looper = gather_with_concurrency(30, *[process_photos(photo, file_sizes, destination_path) for photo in album])
