@@ -136,6 +136,6 @@ jobs:
           file: ./Dockerfile
           push: true
           platforms: linux/arm64, linux/amd64, linux/386
-          tags: mandarons/icloud-drive:main
+          tags: mrc527/icloud-drive:main
       - name: Image digest
         run: echo ${{ steps.docker_build.outputs.digest }}

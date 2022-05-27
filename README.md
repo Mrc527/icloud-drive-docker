@@ -1,9 +1,9 @@
 # iCloud-docker (Previously known as iCloud-drive-docker) 
 
-[![CI - Main](https://github.com/mandarons/icloud-drive-docker/actions/workflows/ci-main-test-coverage-deploy.yml/badge.svg?branch=main)](https://github.com/mandarons/icloud-drive-docker/actions/workflows/ci-main-test-coverage-deploy.yml)
-[![Tests](https://mandarons.github.io/icloud-drive-docker/badges/tests.svg)](https://mandarons.github.io/icloud-drive-docker/test-results/)
-[![Coverage](https://mandarons.github.io/icloud-drive-docker/badges/coverage.svg)](https://mandarons.github.io/icloud-drive-docker/test-coverage/index.html)
-[![Docker](https://badgen.net/docker/pulls/mandarons/icloud-drive)](https://hub.docker.com/r/mandarons/icloud-drive)
+[![CI - Main](https://github.com/mrc527/icloud-drive-docker/actions/workflows/ci-main-test-coverage-deploy.yml/badge.svg?branch=main)](https://github.com/mrc527/icloud-drive-docker/actions/workflows/ci-main-test-coverage-deploy.yml)
+[![Tests](https://mrc527.github.io/icloud-drive-docker/badges/tests.svg)](https://mrc527.github.io/icloud-drive-docker/test-results/)
+[![Coverage](https://mrc527.github.io/icloud-drive-docker/badges/coverage.svg)](https://mrc527.github.io/icloud-drive-docker/test-coverage/index.html)
+[![Docker](https://badgen.net/docker/pulls/mrc527/icloud-drive)](https://hub.docker.com/r/mrc527/icloud-drive)
 [![Discord](https://img.shields.io/discord/871555550444408883?style=for-the-badge)](https://discord.gg/HfAXY2ykhp)
 <a href="https://www.buymeacoffee.com/mandarons" target="_blank"><img src="https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png" alt="Buy Me A Coffee" style="height: 20px !important;width: 174px !important;box-shadow: 0px 3px 2px 0px rgba(190, 190, 190, 0.5) !important;-webkit-box-shadow: 0px 3px 2px 0px rgba(190, 190, 190, 0.5) !important;" ></a>
 
@@ -19,7 +19,7 @@ Primary use case of iCloud-docker is to periodically sync wanted or all of your 
 
 ### Installation using Docker Hub
 ```
-docker run --name icloud -v ${PWD}/icloud:/app/icloud -v ${PWD}/config.yaml:/app/config.yaml -e ENV_ICLOUD_PASSWORD=<icloud_password> -v ${PWD}/session_data:/app/session_data mandarons/icloud-drive 
+docker run --name icloud -v ${PWD}/icloud:/app/icloud -v ${PWD}/config.yaml:/app/config.yaml -e ENV_ICLOUD_PASSWORD=<icloud_password> -v ${PWD}/session_data:/app/session_data mrc527/icloud-drive 
 ```
 
 ### Installation using docker-compose
@@ -27,7 +27,7 @@ docker run --name icloud -v ${PWD}/icloud:/app/icloud -v ${PWD}/config.yaml:/app
 version: "3.4"
 services:
   icloud:
-    image: mandarons/icloud-drive
+    image: mrc527/icloud-drive
     environment:
       - PUID=<insert the output of `id -u $user`>
       - GUID=<insert the output of `id -g $user`>
