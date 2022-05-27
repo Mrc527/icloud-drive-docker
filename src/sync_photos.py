@@ -83,7 +83,7 @@ def sync_album(album, destination_path, file_sizes):
 
     try:
         loop = asyncio.get_event_loop()
-    except RuntimeError as e:
+    except RuntimeError as e:  # pragma: no cover
         if str(e).startswith("There is no current event loop in thread"):
             loop = asyncio.new_event_loop()
             asyncio.set_event_loop(loop)
