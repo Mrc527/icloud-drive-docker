@@ -2,10 +2,9 @@ import time
 import os
 import shutil
 from src import config_parser, LOGGER
+from src.tools import background, gather_with_concurrency
 from icloudpy import exceptions
 import asyncio
-
-from src.tools import background, gather_with_concurrency
 
 
 def generate_file_name(photo, file_size, destination_path):
@@ -110,7 +109,6 @@ def sync_photos(config, photos):
             destination_path=os.path.join(destination_path, "all"),
             file_sizes=filters["file_sizes"],
         )
-
 
 # def enable_debug():
 #     import contextlib
