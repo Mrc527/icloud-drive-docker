@@ -157,8 +157,8 @@ def sync_directory(
         #    sync_items(i, drive, destination_path, filters, root, files)
 
         concurrent_workers = 10
-        if config is not None and "drive" in config["app"].keys() and "workers" in config["app"]["drive"].keys():
-            concurrent_workers = config["app"]["photos"]["workers"]
+        if config is not None and "drive" in config.keys() and "workers" in config["drive"].keys():
+            concurrent_workers = config["drive"]["workers"]
 
         try:
             loop = asyncio.get_event_loop()
