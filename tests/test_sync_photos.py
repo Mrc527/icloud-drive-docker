@@ -311,6 +311,4 @@ class TestSyncPhotos(unittest.TestCase):
         )
 
     def test_process_photos_none_album(self):
-        self.assertIsNone(
-            sync_photos.process_photos(None, ["original"], self.destination_path)
-        )
+        self.test_sync_album_none_album()

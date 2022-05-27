@@ -11,14 +11,14 @@ import asyncio
 from src import config_parser, LOGGER
 
 
-def background(f):
+def background(f): # pragma: no cover
     def wrapped(*args, **kwargs):
         return asyncio.get_event_loop().run_in_executor(None, f, *args, **kwargs)
 
     return wrapped
 
 
-async def gather_with_concurrency(n, *tasks):
+async def gather_with_concurrency(n, *tasks): # pragma: no cover
     semaphore = asyncio.Semaphore(n)
 
     async def sem_task(task):
