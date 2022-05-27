@@ -6,8 +6,26 @@ import time
 from pathlib import Path
 from shutil import copyfileobj, rmtree
 from icloudpy import exceptions
+import asyncio
 
 from src import config_parser, LOGGER
+
+
+def background(f):
+    def wrapped(*args, **kwargs):
+        return asyncio.get_event_loop().run_in_executor(None, f, *args, **kwargs)
+
+    return wrapped
+
+
+async def gather_with_concurrency(n, *tasks):
+    semaphore = asyncio.Semaphore(n)
+
+    async def sem_task(task):
+        async with semaphore:
+            return await task
+
+    return await asyncio.gather(*(sem_task(task) for task in tasks))
 
 
 def wanted_file(filters, file_path):
@@ -35,9 +53,9 @@ def wanted_folder(filters, root, folder_path):
             )
         )
         if (
-            folder_path in child_path.parents
-            or child_path in folder_path.parents
-            or folder_path == child_path
+                folder_path in child_path.parents
+                or child_path in folder_path.parents
+                or folder_path == child_path
         ):
             return True
     return False
@@ -76,8 +94,9 @@ def file_exists(item, local_file):
         local_file_size = os.path.getsize(local_file)
         remote_file_size = item.size
         if (
-            local_file_modified_time == remote_file_modified_time
-            and (local_file_size == remote_file_size or (local_file_size == 0 and remote_file_size == None) or (local_file_size == None and remote_file_size == 0))
+                local_file_modified_time == remote_file_modified_time
+                and (local_file_size == remote_file_size or (local_file_size == 0 and remote_file_size == None) or (
+                local_file_size == None and remote_file_size == 0))
         ):
             LOGGER.debug(f"No changes detected. Skipping the file {local_file} ...")
             return True
@@ -138,7 +157,7 @@ def remove_obsolete(destination_path, files):
     return removed_paths
 
 
-def sync_directory(
+def sync_directory_old(
     drive,
     destination_path,
     items,
@@ -191,6 +210,82 @@ def sync_directory(
                     )
         if top and remove:
             remove_obsolete(destination_path=destination_path, files=files)
+    return files
+
+
+def sync_directory(
+        drive,
+        destination_path,
+        items,
+        root,
+        top=True,
+        filters=None,
+        remove=False,
+):
+    files = set()
+    if drive and destination_path and items and root:
+        #for i in items:
+        #    sync_items(i, drive, destination_path, filters, root, files)
+
+        try:
+            loop = asyncio.get_event_loop()
+        except RuntimeError as e:
+            if str(e).startswith('There is no current event loop in thread'):
+                loop = asyncio.new_event_loop()
+                asyncio.set_event_loop(loop)
+            else:
+                raise
+
+        looper = gather_with_concurrency(10, *[sync_items(i, drive, destination_path, filters, root, files) for i in items])  # Run the loop
+
+        loop.run_until_complete(looper)
+
+        if top and remove:
+            remove_obsolete(destination_path=destination_path, files=files)
+    return files
+
+
+@background
+def sync_items(i, drive, destination_path, filters, root, files):
+    item = drive[i]
+    if item.type in ("folder", "app_library"):
+        new_folder = process_folder(
+            item=item,
+            destination_path=destination_path,
+            filters=filters["folders"]
+            if filters and "folders" in filters
+            else None,
+            root=root,
+        )
+        if not new_folder:
+            return
+        files.add(new_folder)
+        files.update(
+            sync_directory(
+                drive=item,
+                destination_path=new_folder,
+                items=item.dir(),
+                root=root,
+                top=False,
+                filters=filters,
+            )
+        )
+    elif item.type == "file":
+        if wanted_parent_folder(
+                filters=filters["folders"]
+                if filters and "folders" in filters
+                else None,
+                root=root,
+                folder_path=destination_path,
+        ):
+            process_file(
+                item=item,
+                destination_path=destination_path,
+                filters=filters["file_extensions"]
+                if filters and "file_extensions" in filters
+                else None,
+                files=files,
+            )
     return files
 
 

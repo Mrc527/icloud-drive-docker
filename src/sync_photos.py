@@ -3,6 +3,24 @@ import os
 import shutil
 from src import config_parser, LOGGER
 from icloudpy import exceptions
+import asyncio
+
+
+def background(f):
+    def wrapped(*args, **kwargs):
+        return asyncio.get_event_loop().run_in_executor(None, f, *args, **kwargs)
+
+    return wrapped
+
+
+async def gather_with_concurrency(n, *tasks):
+    semaphore = asyncio.Semaphore(n)
+
+    async def sem_task(task):
+        async with semaphore:
+            return await task
+
+    return await asyncio.gather(*(sem_task(task) for task in tasks))
 
 
 def generate_file_name(photo, file_size, destination_path):
@@ -30,7 +48,7 @@ def photo_exists(photo, file_size, local_path):
             return True
         else:
             LOGGER.debug(
-                f"Change detected: local_file_size is {local_size} and remote_file_size is {remote_size}."
+                f"Change detected: local_file_size is {local_size} and remote_file_size is {remote_size}.({(str(vars(photo)).split(',')[1:])})"
             )
         return False
 
@@ -49,6 +67,12 @@ def download_photo(photo, file_size, destination_path):
         LOGGER.error(f"Failed to download {destination_path}: {str(e)}")
         return False
     return True
+
+
+@background
+def process_photos(photo, file_sizes, destination_path):
+    for file_size in file_sizes:
+        process_photo(photo, file_size, destination_path)
 
 
 def process_photo(photo, file_size, destination_path):
@@ -70,9 +94,19 @@ def sync_album(album, destination_path, file_sizes):
     if not (album and destination_path and file_sizes):
         return None
     os.makedirs(destination_path, exist_ok=True)
-    for photo in album:
-        for file_size in file_sizes:
-            process_photo(photo, file_size, destination_path)
+
+    try:
+        loop = asyncio.get_event_loop()
+    except RuntimeError as e:
+        if str(e).startswith('There is no current event loop in thread'):
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
+        else:
+            raise
+
+    looper = gather_with_concurrency(30, *[process_photos(photo, file_sizes, destination_path) for photo in album])  # Run the loop
+
+    loop.run_until_complete(looper)
 
 
 def sync_photos(config, photos):
