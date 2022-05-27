@@ -888,3 +888,6 @@ class TestSyncDrive(unittest.TestCase):
                 )
             )
         )
+
+    def test_sync_items(self):
+        self.test_sync_directory_without_folder_filter(self)
