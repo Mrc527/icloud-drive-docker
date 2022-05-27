@@ -95,8 +95,8 @@ def file_exists(item, local_file):
         remote_file_size = item.size
         if (
                 local_file_modified_time == remote_file_modified_time
-                and (local_file_size == remote_file_size or (local_file_size == 0 and remote_file_size == None) or (
-                local_file_size == None and remote_file_size == 0))
+                and (local_file_size == remote_file_size or (local_file_size == 0 and remote_file_size is None) or (
+                local_file_size is None and remote_file_size == 0))
         ):
             LOGGER.debug(f"No changes detected. Skipping the file {local_file} ...")
             return True
@@ -158,13 +158,13 @@ def remove_obsolete(destination_path, files):
 
 
 def sync_directory_old(
-    drive,
-    destination_path,
-    items,
-    root,
-    top=True,
-    filters=None,
-    remove=False,
+        drive,
+        destination_path,
+        items,
+        root,
+        top=True,
+        filters=None,
+        remove=False,
 ):
     files = set()
     if drive and destination_path and items and root:
@@ -194,11 +194,11 @@ def sync_directory_old(
                 )
             elif item.type == "file":
                 if wanted_parent_folder(
-                    filters=filters["folders"]
-                    if filters and "folders" in filters
-                    else None,
-                    root=root,
-                    folder_path=destination_path,
+                        filters=filters["folders"]
+                        if filters and "folders" in filters
+                        else None,
+                        root=root,
+                        folder_path=destination_path,
                 ):
                     process_file(
                         item=item,
@@ -224,19 +224,20 @@ def sync_directory(
 ):
     files = set()
     if drive and destination_path and items and root:
-        #for i in items:
+        # for i in items:
         #    sync_items(i, drive, destination_path, filters, root, files)
 
         try:
             loop = asyncio.get_event_loop()
         except RuntimeError as e:
-            if str(e).startswith('There is no current event loop in thread'):
+            if str(e).startswith("There is no current event loop in thread"):
                 loop = asyncio.new_event_loop()
                 asyncio.set_event_loop(loop)
             else:
                 raise
 
-        looper = gather_with_concurrency(10, *[sync_items(i, drive, destination_path, filters, root, files) for i in items])  # Run the loop
+        looper = gather_with_concurrency(10, *[sync_items(i, drive, destination_path, filters, root, files)
+                                               for i in items])
 
         loop.run_until_complete(looper)
 

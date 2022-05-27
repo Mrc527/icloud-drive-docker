@@ -48,7 +48,7 @@ def photo_exists(photo, file_size, local_path):
             return True
         else:
             LOGGER.debug(
-                f"Change detected: local_file_size is {local_size} and remote_file_size is {remote_size}.({(str(vars(photo)).split(',')[1:])})"
+                f"Change detected: local_file_size is {local_size} and remote_file_size is {remote_size}."
             )
         return False
 
@@ -98,13 +98,13 @@ def sync_album(album, destination_path, file_sizes):
     try:
         loop = asyncio.get_event_loop()
     except RuntimeError as e:
-        if str(e).startswith('There is no current event loop in thread'):
+        if str(e).startswith("There is no current event loop in thread"):
             loop = asyncio.new_event_loop()
             asyncio.set_event_loop(loop)
         else:
             raise
 
-    looper = gather_with_concurrency(30, *[process_photos(photo, file_sizes, destination_path) for photo in album])  # Run the loop
+    looper = gather_with_concurrency(30, *[process_photos(photo, file_sizes, destination_path) for photo in album])
 
     loop.run_until_complete(looper)
 
