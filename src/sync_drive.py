@@ -149,11 +149,16 @@ def sync_directory(
         top=True,
         filters=None,
         remove=False,
+        config=None
 ):
     files = set()
     if drive and destination_path and items and root:
         # for i in items:
         #    sync_items(i, drive, destination_path, filters, root, files)
+
+        concurrent_workers = 10
+        if config is not None and config["app"]["photos"]["workers"] is not None:
+            concurrent_workers = config["app"]["photos"]["workers"]
 
         try:
             loop = asyncio.get_event_loop()
@@ -164,8 +169,9 @@ def sync_directory(
             else:  # pragma: no cover
                 raise
 
-        looper = gather_with_concurrency(10, *[sync_items(i, drive, destination_path, filters, root, files)
-                                               for i in items])
+        looper = gather_with_concurrency(concurrent_workers, *[sync_items(i, drive, destination_path, filters, root,
+                                                                          files, config)
+                                                               for i in items])
 
         loop.run_until_complete(looper)
 
@@ -175,7 +181,7 @@ def sync_directory(
 
 
 @background
-def sync_items(i, drive, destination_path, filters, root, files):
+def sync_items(i, drive, destination_path, filters, root, files, config):
     item = drive[i]
     if item.type in ("folder", "app_library"):
         new_folder = process_folder(
@@ -185,6 +191,7 @@ def sync_items(i, drive, destination_path, filters, root, files):
             if filters and "folders" in filters
             else None,
             root=root,
+            config=config
         )
         if not new_folder:
             return
@@ -197,6 +204,7 @@ def sync_items(i, drive, destination_path, filters, root, files):
                 root=root,
                 top=False,
                 filters=filters,
+                config=config
             )
         )
     elif item.type == "file":
@@ -230,4 +238,5 @@ def sync_drive(config, drive):
         if "drive" in config and "filters" in config["drive"]
         else None,
         remove=config_parser.get_drive_remove_obsolete(config=config),
+        config=config,
     )
