@@ -269,7 +269,7 @@ class TestSyncPhotos(unittest.TestCase):
         )
 
     def test_sync_album_none_destination_path(self):
-        self.assertIsNone(sync_photos.sync_album({}, None, ["original"]), None)
+        self.assertIsNone(sync_photos.sync_album({}, None, ["original"], None))
 
     def test_sync_album_none_file_sizes(self):
         self.assertIsNone(sync_photos.sync_album({}, self.destination_path, None, None))
