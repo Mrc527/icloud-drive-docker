@@ -77,12 +77,13 @@ def process_photo(photo, file_size, destination_path):
 
 
 def sync_album(album, destination_path, file_sizes, config):
-    if not (album and destination_path and file_sizes):
-        return None
-    os.makedirs(destination_path, exist_ok=True)
     concurrent_workers = 10
     if config is not None and "photos" in config.keys() and "workers" in config["photos"].keys():
         concurrent_workers = config["photos"]["workers"]
+    if not (album and destination_path and file_sizes):
+        return None
+    os.makedirs(destination_path, exist_ok=True)
+
     try:
         loop = asyncio.get_event_loop()
     except RuntimeError as e:  # pragma: no cover

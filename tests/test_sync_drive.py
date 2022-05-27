@@ -843,6 +843,25 @@ class TestSyncDrive(unittest.TestCase):
             )
         )
 
+    def test_sync_directory_config(self):
+        config = self.config.copy()
+        config["drive"]["workers"] = 2
+        self.assertTrue(
+            0
+            < len(
+                sync_drive.sync_directory(
+                    drive=self.drive,
+                    destination_path=self.destination_path,
+                    root=self.root,
+                    items=self.drive.dir(),
+                    top=True,
+                    filters=self.filters,
+                    remove=False,
+                    config=config
+                )
+            )
+        )
+
     @patch(target="keyring.get_password", return_value=data.VALID_PASSWORD)
     @patch(
         target="src.config_parser.get_username", return_value=data.AUTHENTICATED_USER

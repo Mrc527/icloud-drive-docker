@@ -272,7 +272,7 @@ class TestSyncPhotos(unittest.TestCase):
         config = self.config.copy()
         config["photos"]["workers"] = 1
         self.assertIsNone(
-            sync_photos.sync_album({}, self.destination_path, ["original"], config)
+            sync_photos.sync_album({}, self.destination_path, ["original"], config=config)
         )
 
     def test_sync_album_none_destination_path(self):
