@@ -227,7 +227,7 @@ def sync_items(i, drive, destination_path, filters, root, files, config):
 
 def sync_drive(config, drive):
     destination_path = config_parser.prepare_drive_destination(config=config)
-    return sync_directory(
+    result = sync_directory(
         drive=drive,
         destination_path=destination_path,
         root=destination_path,
@@ -239,3 +239,5 @@ def sync_drive(config, drive):
         remove=config_parser.get_drive_remove_obsolete(config=config),
         config=config,
     )
+    LOGGER.info(f"Drive sync completed")
+    return result

@@ -29,6 +29,9 @@ def photo_exists(photo, file_size, local_path):
     if photo and local_path and os.path.isfile(local_path):
         local_size = os.path.getsize(local_path)
         remote_size = int(photo.versions[file_size]["size"])
+        LOGGER.info(
+            f"(Exists: {local_size == remote_size}) Local mTime -> {os.path.getmtime(local_path)}\nLocalSize -> {os.path.getsize(local_path)}\nRemoteSize ->{remote_size}\nRemoteDate -> {time.mktime(photo.added_date.timetuple())}")
+
         if local_size == remote_size:
             LOGGER.debug(f"No changes detected. Skipping the file {local_path} ...")
             return True
@@ -47,8 +50,11 @@ def download_photo(photo, file_size, destination_path):
         download = photo.download(file_size)
         with open(destination_path, "wb") as file_out:
             shutil.copyfileobj(download.raw, file_out)
+        LOGGER.info(f"Setting modified date to {photo.added_date}")
         local_modified_time = time.mktime(photo.added_date.timetuple())
         os.utime(destination_path, (local_modified_time, local_modified_time))
+        LOGGER.info(
+            f"{destination_path}: Remote date -> {photo.added_date} Converted Date -> {local_modified_time} Local mTime -> {os.path.getmtime(destination_path)}")
     except (exceptions.ICloudPyAPIResponseException, FileNotFoundError, Exception) as e:
         LOGGER.error(f"Failed to download {destination_path}: {str(e)}")
         return False
@@ -80,6 +86,7 @@ def sync_album(album, destination_path, file_sizes, config):
     concurrent_workers = 10
     if config is not None and "photos" in config.keys() and "workers" in config["photos"].keys():
         concurrent_workers = config["photos"]["workers"]
+
     if not (album and destination_path and file_sizes):
         return None
     os.makedirs(destination_path, exist_ok=True)
@@ -117,6 +124,7 @@ def sync_photos(config, photos):
             file_sizes=filters["file_sizes"],
             config=config,
         )
+    LOGGER.info(f"Photo sync completed")
 
 # def enable_debug():
 #     import contextlib
