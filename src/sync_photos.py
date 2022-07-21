@@ -111,7 +111,7 @@ def sync_album(album, destination_path, file_sizes, config):
         else:  # pragma: no cover
             raise
     total = len(album)
-    for chunk in more_itertools.chunked(album, 100):
+    for chunk in more_itertools.chunked(album, concurrent_workers*20):
         tasks = []
         for photo in chunk:
             tasks.append(process_photos(photo, file_sizes, destination_path))

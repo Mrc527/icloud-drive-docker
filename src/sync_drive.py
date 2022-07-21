@@ -172,7 +172,7 @@ def sync_directory(
                 raise
 
         total = len(items)
-        for chunk in more_itertools.chunked(items, 100):
+        for chunk in more_itertools.chunked(items, concurrent_workers*20):
             tasks = []
             for item in chunk:
                 tasks.append(sync_items(item, drive, destination_path, filters, root, files, config))
