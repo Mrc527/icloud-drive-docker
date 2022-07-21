@@ -5,6 +5,8 @@ import re
 import time
 from pathlib import Path
 from shutil import copyfileobj, rmtree
+
+import more_itertools
 from icloudpy import exceptions
 import asyncio
 
@@ -169,11 +171,22 @@ def sync_directory(
             else:  # pragma: no cover
                 raise
 
-        looper = gather_with_concurrency(concurrent_workers, *[sync_items(i, drive, destination_path, filters, root,
-                                                                          files, config)
-                                                               for i in items])
+        __total = len(items)
+        for chunk in more_itertools.chunked(items, 100):
+            __tasks = []
+            for __item in chunk:
+                __tasks.append(sync_items(__item, drive, destination_path, filters, root, files, config))
+            LOGGER.info(f"Executing {len(__tasks)} tasks in current chunk")
+            __looper = gather_with_concurrency(concurrent_workers, __total, __tasks)
+            loop.run_until_complete(__looper)
+            LOGGER.info(f"Chunk completed, moving to the next")
 
-        loop.run_until_complete(looper)
+
+        # looper = gather_with_concurrency(concurrent_workers, *[sync_items(i, drive, destination_path, filters, root,
+        #                                                                   files, config)
+        #                                                        for i in items])
+        #
+        # loop.run_until_complete(looper)
 
         if top and remove:
             remove_obsolete(destination_path=destination_path, files=files)
