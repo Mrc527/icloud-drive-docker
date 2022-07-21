@@ -1,3 +1,4 @@
 icloudpy==0.3.0
 ruamel.yaml==0.17.21
 asyncio==3.4.3
+more-itertools==8.13.0

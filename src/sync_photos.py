@@ -1,12 +1,14 @@
 import time
 import os
 import shutil
+
+import more_itertools
 from icloudpy import exceptions
 import asyncio
 
 
 from src import config_parser, LOGGER
-from src.tools import background, gather_with_concurrency
+from src.tools import gather_with_concurrency
 
 
 def generate_file_name(photo, file_size, destination_path):
@@ -61,10 +63,10 @@ def download_photo(photo, file_size, destination_path):
     return True
 
 
-@background
-def process_photos(photo, file_sizes, destination_path):
+async def process_photos(photo, file_sizes, destination_path):
     for file_size in file_sizes:
         process_photo(photo, file_size, destination_path)
+    return True
 
 
 def process_photo(photo, file_size, destination_path):
@@ -99,11 +101,18 @@ def sync_album(album, destination_path, file_sizes, config):
             asyncio.set_event_loop(loop)
         else:  # pragma: no cover
             raise
+    tasks = []
+    for chunk in more_itertools.chunked(album, 100):
+        for photo in chunk:
+            tasks.append(process_photos(photo, file_sizes, destination_path))
+        looper = gather_with_concurrency(concurrent_workers, len(album), *tasks)
+        try:
+            loop.run_until_complete(looper)
+        except RuntimeError:
+            print("error: ignoring.")
 
-    looper = gather_with_concurrency(concurrent_workers, *[process_photos(photo, file_sizes, destination_path)
-                                                           for photo in album])
 
-    loop.run_until_complete(looper)
+    # tasks = [process_photos(photo, file_sizes, destination_path) for photo in album]
 
 
 def sync_photos(config, photos):

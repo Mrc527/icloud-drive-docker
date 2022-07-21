@@ -6,46 +6,31 @@ app:
     filename: "icloud.log"
   credentials:
     # iCloud drive username
-    username: "please@replace.me"
+    username: "marco@visin.ch"
     # Retry login interval - default is 10 minutes
     retry_login_interval: 600
   # Drive destination
   root: "icloud"
   smtp:
-    # If you want to recieve email notifications about expired/missing 2FA credentials then uncomment
-    # email: "sender@test.com"
-    # default to is same as email above
+    ## If you want to recieve email notifications about expired/missing 2FA credentials then uncomment
+    # email: "user@test.com"
+    ## optional, to email address. Default is sender email.
     # to: "receiver@test.com"
     # password:
     # host: "smtp.test.com"
     # port: 587
     # If your email provider doesn't handle TLS
     # no_tls: true
-drive:
-  destination: "drive"
-  remove_obsolete: false
-  sync_interval: 300
-  filters:
-    # File filters to be included in syncing iCloud drive content
-    folders:
-      - "folder1"
-      - "folder2"
-      - "folder3"
-    file_extensions:
-      # File extensions to be included
-      - "pdf"
-      - "png"
-      - "jpg"
-      - "jpeg"
 photos:
   destination: "photos"
-  remove_obsolete: false
-  sync_inteval: 500
+  remove_obsolete: true
+  sync_inteval: 172800
+  workers: 10
   filters:
-    albums:
-      - "album 1"
-      - "album2"
+    #albums:
+    #    - "Capodanno 2016: Austria"
     file_sizes: # valid values are original, medium and/or thumb
-      - "original"
-      # - "medium"
-      # - "thumb"
+        - "original"
+
+
+
