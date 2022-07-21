@@ -3,6 +3,7 @@ __author__ = "Mandar Patil (mandarons@pm.me)"
 import unittest
 import os
 import shutil
+from datetime import date
 from unittest.mock import patch
 import icloudpy
 import tests
@@ -78,7 +79,7 @@ class TestSyncPhotos(unittest.TestCase):
         )
         sync_photos.sync_photos(config=config, photos=mock_service.photos)
 
-        os.remove(os.path.join(album_1_path, "IMG_3148.JPG"))
+        os.remove(os.path.join(album_1_path, "2019", "10", "IMG_3148.JPG"))
         # Download missing file
         with self.assertLogs() as captured:
             self.assertIsNone(
@@ -86,7 +87,7 @@ class TestSyncPhotos(unittest.TestCase):
             )
             self.assertTrue(len(captured.records) > 0)
             self.assertIsNotNone(
-                next((s for s in captured[1] if "album-1/IMG_3148.JPG ..." in s), None)
+                next((s for s in captured[1] if "album-1/2019/10/IMG_3148.JPG ..." in s), None)
             )
         self.assertTrue(os.path.isdir(album_0_path))
         self.assertTrue(os.path.isdir(album_1_path))
@@ -118,10 +119,10 @@ class TestSyncPhotos(unittest.TestCase):
         )
         sync_photos.sync_photos(config=config, photos=mock_service.photos)
         # Download changed file
-        os.remove(os.path.join(album_1_path, "IMG_3148.JPG"))
+        os.remove(os.path.join(album_1_path, "2019", "10", "IMG_3148.JPG"))
         shutil.copyfile(
             os.path.join(DATA_DIR, "thumb.jpeg"),
-            os.path.join(album_1_path, "IMG_3148.JPG"),
+            os.path.join(album_1_path, "2019", "10", "IMG_3148.JPG"),
         )
         with self.assertLogs() as captured:
             self.assertIsNone(
@@ -129,7 +130,7 @@ class TestSyncPhotos(unittest.TestCase):
             )
             self.assertTrue(len(captured.records) > 0)
             self.assertIsNotNone(
-                next((s for s in captured[1] if "album-1/IMG_3148.JPG ..." in s), None)
+                next((s for s in captured[1] if "album-1/2019/10/IMG_3148.JPG ..." in s), None)
             )
         self.assertTrue(os.path.isdir(album_0_path))
         self.assertTrue(os.path.isdir(album_1_path))
@@ -190,8 +191,8 @@ class TestSyncPhotos(unittest.TestCase):
 
         # Rename previous original files - upgrade to newer version
         os.rename(
-            os.path.join(album_1_path, "IMG_3148.JPG"),
-            os.path.join(album_1_path, "IMG_3148__original.JPG"),
+            os.path.join(album_1_path, "2019", "10", "IMG_3148.JPG"),
+            os.path.join(album_1_path, "2019", "10", "IMG_3148__original.JPG"),
         )
 
         with self.assertLogs(logger=LOGGER, level="DEBUG") as captured:
@@ -227,10 +228,10 @@ class TestSyncPhotos(unittest.TestCase):
             )
             self.assertTrue(len(captured.records) > 0)
             self.assertIsNotNone(
-                next((s for s in captured[1] if "all/IMG_3148.JPG ..." in s), None)
+                next((s for s in captured[1] if "2019/10/IMG_3148.JPG ..." in s), None)
             )
 
-        self.assertTrue(os.path.isdir(os.path.join(self.destination_path, "all")))
+        self.assertTrue(os.path.isdir(os.path.join(self.destination_path, "")))
 
     def test_download_photo_none_photo(self):
 
@@ -291,6 +292,10 @@ class TestSyncPhotos(unittest.TestCase):
             def versions(self):
                 return {"original": "exists"}
 
+            @property
+            def added_date(self):
+                return date.today()
+
         self.assertFalse(
             sync_photos.process_photo(
                 photo=MockPhoto(),
@@ -308,6 +313,10 @@ class TestSyncPhotos(unittest.TestCase):
             @property
             def versions(self):
                 return {"original": "exists"}
+
+            @property
+            def added_date(self):
+                return date.today()
 
         self.assertFalse(
             sync_photos.process_photo(
