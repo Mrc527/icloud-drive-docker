@@ -19,4 +19,5 @@ async def gather_with_concurrency(number_of_workers, total_tasks, tasks):  # pra
         async with semaphore:
             return await task
 
-    return await asyncio.gather(*[sem_task(task, counter) for counter, task in enumerate(tasks)])
+    return await asyncio.gather(*[sem_task(task, counter) for counter, task in enumerate(tasks)],
+                                return_exceptions=True)
