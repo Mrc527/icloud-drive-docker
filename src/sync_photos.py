@@ -105,16 +105,16 @@ def sync_album(album, destination_path, file_sizes, config):
             asyncio.set_event_loop(loop)
         else:  # pragma: no cover
             raise
-    tasks = []
     for chunk in more_itertools.chunked(album, 100):
-        for photo in chunk:
-            tasks.append(process_photos(photo, file_sizes, destination_path))
-        looper = gather_with_concurrency(concurrent_workers, len(album), *tasks)
+        __tasks = []
+        for __photo in chunk:
+            __tasks.append(process_photos(__photo, file_sizes, destination_path))
+        __looper = gather_with_concurrency(concurrent_workers, len(album), *__tasks)
         try:
-            loop.run_until_complete(looper)
-        except RuntimeError:
-            print("error: ignoring.")
-
+            loop.run_until_complete(__looper)
+        except RuntimeError as e:
+            LOGGER.error(f"Error {e} --> Ignoring😁")
+        LOGGER.info(f"Chunk completed, moving to the next")
 
     # tasks = [process_photos(photo, file_sizes, destination_path) for photo in album]
 
