@@ -8,7 +8,7 @@ import asyncio
 
 
 from src import config_parser, LOGGER
-from src.tools import gather_with_concurrency
+from src.tools import gather_with_concurrency, background
 
 
 def generate_file_name(photo, file_size, destination_path):
@@ -67,7 +67,8 @@ def download_photo(photo, file_size, destination_path):
     return True
 
 
-async def process_photos(photo, file_sizes, destination_path):
+@background
+def process_photos(photo, file_sizes, destination_path):
     for file_size in file_sizes:
         process_photo(photo, file_size, destination_path)
     return True
@@ -112,7 +113,7 @@ def sync_album(album, destination_path, file_sizes, config):
         for __photo in chunk:
             __tasks.append(process_photos(__photo, file_sizes, destination_path))
         LOGGER.info(f"Executing {len(__tasks)} tasks in current chunk")
-        __looper = gather_with_concurrency(concurrent_workers, __total, *__tasks)
+        __looper = gather_with_concurrency(concurrent_workers, __total, __tasks)
         loop.run_until_complete(__looper)
         LOGGER.info(f"Chunk completed, moving to the next")
 
