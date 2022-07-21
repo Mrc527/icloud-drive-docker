@@ -12,6 +12,10 @@ from src.tools import gather_with_concurrency
 
 
 def generate_file_name(photo, file_size, destination_path):
+    full_path = os.path.join(destination_path, str(photo.added_date.year))
+    os.makedirs(full_path, exist_ok=True)
+    full_path = os.path.join(full_path, str(photo.added_date.month))
+    os.makedirs(full_path, exist_ok=True)
     filename = photo.filename
     if file_size != "original":
         tokens = photo.filename.rsplit(".", 1)
@@ -21,10 +25,10 @@ def generate_file_name(photo, file_size, destination_path):
         tokens = photo.filename.rsplit(".", 1)
         tokens.insert(len(tokens) - 1, file_size)
         original_filename = "__".join(tokens[:-1]) + "." + tokens[-1]
-        original_file_path = os.path.join(destination_path, original_filename)
+        original_file_path = os.path.join(full_path, original_filename)
         if os.path.isfile(original_file_path):
-            os.rename(original_file_path, os.path.join(destination_path, filename))
-    return os.path.abspath(os.path.join(destination_path, filename))
+            os.rename(original_file_path, os.path.join(full_path, filename))
+    return os.path.abspath(os.path.join(full_path, filename))
 
 
 def photo_exists(photo, file_size, local_path):
@@ -129,7 +133,7 @@ def sync_photos(config, photos):
     else:
         sync_album(
             album=photos.all,
-            destination_path=os.path.join(destination_path, "all"),
+            destination_path=os.path.join(destination_path, ""),
             file_sizes=filters["file_sizes"],
             config=config,
         )
