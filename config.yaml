@@ -10,7 +10,7 @@ app:
     # Retry login interval - default is 10 minutes
     retry_login_interval: 600
   # Drive destination
-  root: "icloud"
+  root: "/tmp/icloud"
   smtp:
     ## If you want to recieve email notifications about expired/missing 2FA credentials then uncomment
     # email: "user@test.com"

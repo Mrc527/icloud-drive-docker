@@ -96,6 +96,7 @@ def sync_album(album, destination_path, file_sizes, config):
     if not (album and destination_path and file_sizes):
         return None
     os.makedirs(destination_path, exist_ok=True)
+    LOGGER.info(f"Starting parallel download with {concurrent_workers} workers")
 
     try:
         loop = asyncio.get_event_loop()
@@ -105,15 +106,14 @@ def sync_album(album, destination_path, file_sizes, config):
             asyncio.set_event_loop(loop)
         else:  # pragma: no cover
             raise
+    __total = len(album)
     for chunk in more_itertools.chunked(album, 100):
         __tasks = []
         for __photo in chunk:
             __tasks.append(process_photos(__photo, file_sizes, destination_path))
-        __looper = gather_with_concurrency(concurrent_workers, len(album), *__tasks)
-        try:
-            loop.run_until_complete(__looper)
-        except RuntimeError as e:
-            LOGGER.error(f"Error {e} --> Ignoring😁")
+        LOGGER.info(f"Executing {len(__tasks)} tasks in current chunk")
+        __looper = gather_with_concurrency(concurrent_workers, __total, *__tasks)
+        loop.run_until_complete(__looper)
         LOGGER.info(f"Chunk completed, moving to the next")
 
     # tasks = [process_photos(photo, file_sizes, destination_path) for photo in album]

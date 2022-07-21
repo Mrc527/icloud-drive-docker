@@ -10,8 +10,8 @@ def background(f):  # pragma: no cover
     return wrapped
 
 
-async def gather_with_concurrency(n, total_tasks, *tasks):  # pragma: no cover
-    semaphore = asyncio.Semaphore(n)
+async def gather_with_concurrency(number_of_workers, total_tasks, *tasks):  # pragma: no cover
+    semaphore = asyncio.Semaphore(number_of_workers)
 
     async def sem_task(task, counter):  # pragma: no cover
         perc = trunc(((counter+1)/total_tasks)*100)
@@ -19,4 +19,4 @@ async def gather_with_concurrency(n, total_tasks, *tasks):  # pragma: no cover
         async with semaphore:
             return await task
 
-    return await asyncio.gather(*(sem_task(task, counter) for counter, task in enumerate(tasks)))
+    return await asyncio.gather(*[sem_task(task, counter) for counter, task in enumerate(tasks)])

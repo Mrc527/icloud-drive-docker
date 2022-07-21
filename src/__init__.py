@@ -108,7 +108,7 @@ def get_logger():
             file_handler = logging.FileHandler(logger_config["filename"])
             file_handler.setFormatter(
                 logging.Formatter(
-                    "%(asctime)s :: %(levelname)s :: %(name)s :: %(filename)s :: %(lineno)d :: %(message)s"
+                    "%(asctime)s :: %(levelname)s :: %(name)s :: %(threadName)s :: %(filename)s :: %(lineno)d :: %(message)s"
                 )
             )
             logger.addHandler(file_handler)
@@ -118,7 +118,7 @@ def get_logger():
             console_handler = logging.StreamHandler(sys.stdout)
             console_handler.setFormatter(
                 ColorfulConsoleFormatter(
-                    "%(asctime)s :: %(levelname)s :: %(name)s :: %(filename)s :: %(lineno)d :: %(message)s"
+                    "%(asctime)s :: %(levelname)s :: %(name)s :: %(threadName)s :: %(filename)s :: %(lineno)d :: %(message)s"
                 )
             )
             logger.addHandler(console_handler)
