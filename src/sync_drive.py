@@ -171,15 +171,15 @@ def sync_directory(
             else:  # pragma: no cover
                 raise
 
-        __total = len(items)
+        total = len(items)
         for chunk in more_itertools.chunked(items, 100):
-            __tasks = []
-            for __item in chunk:
-                __tasks.append(sync_items(__item, drive, destination_path, filters, root, files, config))
-            LOGGER.info(f"Executing {len(__tasks)} tasks in current chunk")
-            __looper = gather_with_concurrency(concurrent_workers, __total, __tasks)
-            loop.run_until_complete(__looper)
-            LOGGER.info(f"Chunk completed, moving to the next")
+            tasks = []
+            for item in chunk:
+                tasks.append(sync_items(item, drive, destination_path, filters, root, files, config))
+            LOGGER.info(f"Executing {len(tasks)} tasks in current chunk")
+            looper = gather_with_concurrency(concurrent_workers, total, tasks)
+            loop.run_until_complete(looper)
+            LOGGER.info("Chunk completed, moving to the next")
 
 
         # looper = gather_with_concurrency(concurrent_workers, *[sync_items(i, drive, destination_path, filters, root,
@@ -252,5 +252,5 @@ def sync_drive(config, drive):
         remove=config_parser.get_drive_remove_obsolete(config=config),
         config=config,
     )
-    LOGGER.info(f"Drive sync completed")
+    LOGGER.info("Drive sync completed")
     return result

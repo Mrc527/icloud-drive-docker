@@ -36,7 +36,9 @@ def photo_exists(photo, file_size, local_path):
         local_size = os.path.getsize(local_path)
         remote_size = int(photo.versions[file_size]["size"])
         LOGGER.info(
-            f"(Exists: {local_size == remote_size}) Local mTime -> {os.path.getmtime(local_path)}\nLocalSize -> {os.path.getsize(local_path)}\nRemoteSize ->{remote_size}\nRemoteDate -> {time.mktime(photo.added_date.timetuple())}")
+            f"(Exists: {local_size == remote_size}) Local mTime -> {os.path.getmtime(local_path)}\nLocalSize "
+            f"-> {os.path.getsize(local_path)}\nRemoteSize ->{remote_size}\n"
+            f"RemoteDate -> {time.mktime(photo.added_date.timetuple())}")
 
         if local_size == remote_size:
             LOGGER.debug(f"No changes detected. Skipping the file {local_path} ...")
@@ -60,7 +62,8 @@ def download_photo(photo, file_size, destination_path):
         local_modified_time = time.mktime(photo.added_date.timetuple())
         os.utime(destination_path, (local_modified_time, local_modified_time))
         LOGGER.info(
-            f"{destination_path}: Remote date -> {photo.added_date} Converted Date -> {local_modified_time} Local mTime -> {os.path.getmtime(destination_path)}")
+            f"{destination_path}: Remote date -> {photo.added_date} Converted Date -> {local_modified_time} "
+            f"Local mTime -> {os.path.getmtime(destination_path)}")
     except (exceptions.ICloudPyAPIResponseException, FileNotFoundError, Exception) as e:
         LOGGER.error(f"Failed to download {destination_path}: {str(e)}")
         return False
@@ -107,15 +110,15 @@ def sync_album(album, destination_path, file_sizes, config):
             asyncio.set_event_loop(loop)
         else:  # pragma: no cover
             raise
-    __total = len(album)
+    total = len(album)
     for chunk in more_itertools.chunked(album, 100):
-        __tasks = []
-        for __photo in chunk:
-            __tasks.append(process_photos(__photo, file_sizes, destination_path))
-        LOGGER.info(f"Executing {len(__tasks)} tasks in current chunk")
-        __looper = gather_with_concurrency(concurrent_workers, __total, __tasks)
-        loop.run_until_complete(__looper)
-        LOGGER.info(f"Chunk completed, moving to the next")
+        tasks = []
+        for photo in chunk:
+            tasks.append(process_photos(photo, file_sizes, destination_path))
+        LOGGER.info(f"Executing {len(tasks)} tasks in current chunk")
+        looper = gather_with_concurrency(concurrent_workers, total, tasks)
+        loop.run_until_complete(looper)
+        LOGGER.info("Chunk completed, moving to the next")
 
     # tasks = [process_photos(photo, file_sizes, destination_path) for photo in album]
 
@@ -138,7 +141,7 @@ def sync_photos(config, photos):
             file_sizes=filters["file_sizes"],
             config=config,
         )
-    LOGGER.info(f"Photo sync completed")
+    LOGGER.info("Photo sync completed")
 
 # def enable_debug():
 #     import contextlib
