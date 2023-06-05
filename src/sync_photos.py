@@ -16,7 +16,9 @@ def generate_file_name(photo, file_size, destination_path):
     os.makedirs(full_path, exist_ok=True)
     full_path = os.path.join(full_path, str(photo.added_date.month))
     os.makedirs(full_path, exist_ok=True)
-    filename = photo.filename
+    datetime = photo.added_date.strftime("%Y-%m-%d_%H-%M-%S")
+    filename = datetime + "_" + photo.filename
+
     if file_size != "original":
         tokens = photo.filename.rsplit(".", 1)
         tokens.insert(len(tokens) - 1, file_size)
