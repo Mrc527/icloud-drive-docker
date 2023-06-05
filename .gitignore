@@ -135,3 +135,5 @@ allure-report
 .history
 ignore-config.yaml
 .idea
+session
+session_data

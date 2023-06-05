@@ -1,18 +1,20 @@
-""" Send an email if the 2FA is expired  """
-
-import smtplib
+"""Send an email if the 2FA is expired."""
 import datetime
+import smtplib
+
+from src import LOGGER, config_parser
 from src.email_message import EmailMessage as Message
-from src import config_parser, LOGGER
 
 
 def send(config, last_send=None, dry_run=False):
+    """Send email."""
     sent_on = None
     email = config_parser.get_smtp_email(config=config)
     to_email = config_parser.get_smtp_to_email(config=config)
     host = config_parser.get_smtp_host(config=config)
     port = config_parser.get_smtp_port(config=config)
     no_tls = config_parser.get_smtp_no_tls(config=config)
+    username = config_parser.get_smtp_username(config=config)
     password = config_parser.get_smtp_password(config=config)
 
     if last_send and last_send > datetime.datetime.now() - datetime.timedelta(hours=24):
@@ -29,7 +31,10 @@ def send(config, last_send=None, dry_run=False):
                     smtp.starttls()
 
                 if password:
-                    smtp.login(email, password)
+                    if username:
+                        smtp.login(username, password)
+                    else:
+                        smtp.login(email, password)
 
                 msg = build_message(email)
 
@@ -45,12 +50,13 @@ def send(config, last_send=None, dry_run=False):
 
 
 def build_message(email):
+    """Create email message."""
     message = Message(to=email)
     message.sender = "icloud-docker <" + email + ">"
     message.date = datetime.datetime.now().strftime("%d/%m/%Y %H:%M")
     message.subject = "icloud-docker: Two step authentication required"
     message.body = """Two-step authentication for iCloud Drive, Photos (Docker) is required.
-Please login to your server and authenticate. Please run - 
+Please login to your server and authenticate. Please run -
 `docker exec -it icloud /bin/sh -c "icloud --username=<icloud-username> --session-directory=/app/session_data"`."""
 
     return message

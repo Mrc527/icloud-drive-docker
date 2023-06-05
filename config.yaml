@@ -12,25 +12,45 @@ app:
   # Drive destination
   root: "/tmp/icloud"
   smtp:
-    ## If you want to recieve email notifications about expired/missing 2FA credentials then uncomment
-    # email: "user@test.com"
-    ## optional, to email address. Default is sender email.
-    # to: "receiver@test.com"
-    # password:
-    # host: "smtp.test.com"
-    # port: 587
-    # If your email provider doesn't handle TLS
-    # no_tls: true
+  # If you want to receive email notifications about expired/missing 2FA credentials then uncomment
+  # email: "sender@test.com"
+  # Uncomment this if your SMTP username is different than your sender address (for services like AWS SES)
+  # username: ""
+  # default to is same as email above
+  # to: "receiver@test.com"
+  # password:
+  # host: "smtp.test.com"
+  # port: 587
+  # If your email provider doesn't handle TLS
+  # no_tls: true
+  # valid values are - global (default - uses .com) or china (uses .com.cn)
+  region: global
+drive:
+  destination: "drive"
+  remove_obsolete: false
+  sync_interval: 300
+  filters:
+    # File filters to be included in syncing iCloud drive content
+    folders:
+      - "folder1"
+      - "folder2"
+      - "folder3"
+    file_extensions:
+      # File extensions to be included
+      - "pdf"
+      - "png"
+      - "jpg"
+      - "jpeg"
 photos:
   destination: "photos"
-  remove_obsolete: true
-  sync_inteval: 172800
-  workers: 10
+  remove_obsolete: false
+  sync_interval: 500
   filters:
-    #albums:
-    #    - "Capodanno 2016: Austria"
-    file_sizes: # valid values are original, medium and/or thumb
-        - "original"
-
-
-
+    albums:
+      - "album 1"
+      - "album2"
+    file_sizes:
+      # valid values are original, medium and/or thumb
+      - "original"
+      # - "medium"
+      # - "thumb"

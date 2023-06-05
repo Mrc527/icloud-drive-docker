@@ -1,20 +1,50 @@
+"""Sync module."""
+__author__ = "Mandar Patil <mandarons@pm.me>"
 import datetime
-from time import sleep
 import os
+from time import sleep
 
-from icloudpy import ICloudPyService, utils, exceptions
+from icloudpy import ICloudPyService, exceptions, utils
+
 from src import (
     DEFAULT_COOKIE_DIRECTORY,
+    ENV_ICLOUD_PASSWORD_KEY,
+    LOGGER,
     config_parser,
     notify,
-    LOGGER,
     read_config,
-    ENV_ICLOUD_PASSWORD_KEY,
+    sync_drive,
+    sync_photos,
 )
-from src import sync_drive, sync_photos
+from src.usage import alive
+
+
+def get_api_instance(
+    username,
+    password,
+    cookie_directory=DEFAULT_COOKIE_DIRECTORY,
+    server_region="global",
+):
+    """Get API client instance."""
+    return (
+        ICloudPyService(
+            apple_id=username,
+            password=password,
+            cookie_directory=cookie_directory,
+            auth_endpoint="https://www.icloud.com.cn",
+            setup_endpoint="https://setup.icloud.com.cn/setup/ws/1",
+        )
+        if server_region == "china"
+        else ICloudPyService(
+            apple_id=username,
+            password=password,
+            cookie_directory=cookie_directory,
+        )
+    )
 
 
 def sync():
+    """Sync data from server."""
     last_send = None
     enable_sync_drive = True
     enable_sync_photos = True
@@ -23,6 +53,7 @@ def sync():
     sleep_for = 10
     while True:
         config = read_config()
+        alive(config=config)
         username = config_parser.get_username(config=config)
         if username:
             try:
@@ -33,19 +64,22 @@ def sync():
                     )
                 else:
                     password = utils.get_password_from_keyring(username=username)
-                api = ICloudPyService(
-                    apple_id=username,
-                    password=password,
-                    cookie_directory=DEFAULT_COOKIE_DIRECTORY,
+                server_region = config_parser.get_region(config=config)
+                api = get_api_instance(
+                    username=username, password=password, server_region=server_region
                 )
                 if not api.requires_2sa:
                     if "drive" in config and enable_sync_drive:
+                        LOGGER.info("Syncing drive...")
                         sync_drive.sync_drive(config=config, drive=api.drive)
+                        LOGGER.info("Drive synced")
                         drive_sync_interval = config_parser.get_drive_sync_interval(
                             config=config
                         )
                     if "photos" in config and enable_sync_photos:
+                        LOGGER.info("Syncing photos...")
                         sync_photos.sync_photos(config=config, photos=api.photos)
+                        LOGGER.info("Photos synced")
                         photos_sync_interval = config_parser.get_photos_sync_interval(
                             config=config
                         )

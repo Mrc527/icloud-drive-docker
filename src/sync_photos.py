@@ -1,14 +1,31 @@
-import time
+"""Sync photos module."""
+___author___ = "Mandar Patil <mandarons@pm.me>"
+import base64
 import os
 import shutil
 
 import more_itertools
+import time
+from pathlib import Path
+
 from icloudpy import exceptions
 import asyncio
 
 
 from src import config_parser, LOGGER
 from src.tools import gather_with_concurrency, background
+
+from src import LOGGER, config_parser
+
+
+def photo_wanted(photo, extensions):
+    """Check if photo is wanted based on extension."""
+    if not extensions or len(extensions) == 0:
+        return True
+    for extension in extensions:
+        if photo.filename.lower().endswith(str(extension).lower()):
+            return True
+    return False
 
 
 def generate_file_name(photo, file_size, destination_path):
@@ -33,7 +50,9 @@ def generate_file_name(photo, file_size, destination_path):
     return os.path.abspath(os.path.join(full_path, filename))
 
 
+
 def photo_exists(photo, file_size, local_path):
+    """Check if photo exist locally."""
     if photo and local_path and os.path.isfile(local_path):
         local_size = os.path.getsize(local_path)
         remote_size = int(photo.versions[file_size]["size"])
@@ -53,6 +72,7 @@ def photo_exists(photo, file_size, local_path):
 
 
 def download_photo(photo, file_size, destination_path):
+    """Download photo from server."""
     if not (photo and file_size and destination_path):
         return False
     LOGGER.info(f"Downloading {destination_path} ...")
@@ -80,6 +100,7 @@ def process_photos(photo, file_sizes, destination_path):
 
 
 def process_photo(photo, file_size, destination_path):
+    """Process photo details."""
     photo_path = generate_file_name(
         photo=photo, file_size=file_size, destination_path=destination_path
     )
@@ -88,6 +109,8 @@ def process_photo(photo, file_size, destination_path):
             f"File size {file_size} not found on server. Skipping the photo {photo_path} ..."
         )
         return False
+    if not files is None:
+        files.add(photo_path)
     if photo_exists(photo, file_size, photo_path):
         return False
     download_photo(photo, file_size, photo_path)
@@ -95,6 +118,7 @@ def process_photo(photo, file_size, destination_path):
 
 
 def sync_album(album, destination_path, file_sizes, config):
+    """Sync given album."""
     concurrent_workers = 10
     if config is not None and "photos" in config.keys() and "workers" in config["photos"].keys():
         concurrent_workers = config["photos"]["workers"]
@@ -125,9 +149,27 @@ def sync_album(album, destination_path, file_sizes, config):
     # tasks = [process_photos(photo, file_sizes, destination_path) for photo in album]
 
 
+
+def remove_obsolete(destination_path, files):
+    """Remove local obsolete file."""
+    removed_paths = set()
+    if not (destination_path and files is not None):
+        return removed_paths
+    for path in Path(destination_path).rglob("*"):
+        local_file = str(path.absolute())
+        if local_file not in files:
+            if path.is_file():
+                LOGGER.info(f"Removing {local_file} ...")
+                path.unlink(missing_ok=True)
+                removed_paths.add(local_file)
+    return removed_paths
+
+
 def sync_photos(config, photos):
+    """Sync all photos."""
     destination_path = config_parser.prepare_photos_destination(config=config)
     filters = config_parser.get_photos_filters(config=config)
+    files = set()
     if filters["albums"]:
         for album in iter(filters["albums"]):
             sync_album(
@@ -144,6 +186,9 @@ def sync_photos(config, photos):
             config=config,
         )
     LOGGER.info("Photo sync completed")
+    if config_parser.get_photos_remove_obsolete(config=config):
+        remove_obsolete(destination_path, files)
+
 
 # def enable_debug():
 #     import contextlib

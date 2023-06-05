@@ -12,19 +12,27 @@ app:
   # Drive destination
   root: "./icloud"
   smtp:
-    # If you want to recieve email notifications about expired/missing 2FA credentials then uncomment
-    # email: sender@test.com
-    # default to is same as email above
-    # to: receiver@test.com
-    # password:
-    # host: smtp.test.com
-    # port: 587
-    # If your email provider doesn't handle TLS
-    # no_tls: true
+  # If you want to recieve email notifications about expired/missing 2FA credentials then uncomment
+  # email: sender@test.com
+  # Uncomment this if your SMTP username is different than your sender address (for services like AWS SES)
+  # username: ""
+  # default to is same as email above
+  # to: receiver@test.com
+  # password:
+  # host: smtp.test.com
+  # port: 587
+  # If your email provider doesn't handle TLS
+  # no_tls: true
+  # valid values are - global (default - uses .com) or china (uses .com.cn)
+  region: global
+
 drive:
   destination: "./drive"
   remove_obsolete: true
   sync_interval: -1
+  ignore:
+    - "*.psd"
+    - .git/
   filters:
     # File filters to be included in syncing iCloud drive content
     folders:
@@ -39,6 +47,7 @@ drive:
       - jpg
       - jpeg
       - md
+      - band
 photos:
   destination: photos
   remove_obsolete: false
@@ -47,7 +56,8 @@ photos:
     albums:
       - "album 2"
       - album-1
-    file_sizes: # Valid values are [original, medium or thumb]
+    file_sizes:
+      # Valid values are [original, medium or thumb]
       - original
       - medium
       - thumb
