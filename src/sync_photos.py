@@ -94,9 +94,11 @@ def download_photo(photo, file_size, destination_path):
 
 @background
 def process_photos(photo, file_sizes, destination_path):
+    photo_paths = set()
     for file_size in file_sizes:
-        process_photo(photo, file_size, destination_path)
-    return True
+        result = process_photo(photo, file_size, destination_path)
+        photo_paths.add(result)
+    return photo_paths
 
 
 def process_photo(photo, file_size, destination_path):
@@ -108,17 +110,16 @@ def process_photo(photo, file_size, destination_path):
         LOGGER.warning(
             f"File size {file_size} not found on server. Skipping the photo {photo_path} ..."
         )
-        return False
-    if not files is None:
-        files.add(photo_path)
+        return photo_path
     if photo_exists(photo, file_size, photo_path):
-        return False
+        return photo_path
     download_photo(photo, file_size, photo_path)
-    return True
+    return photo_path
 
 
 def sync_album(album, destination_path, file_sizes, config):
     """Sync given album."""
+    result = list()
     concurrent_workers = 10
     if config is not None and "photos" in config.keys() and "workers" in config["photos"].keys():
         concurrent_workers = config["photos"]["workers"]
@@ -137,22 +138,22 @@ def sync_album(album, destination_path, file_sizes, config):
         else:  # pragma: no cover
             raise
     total = len(album)
+    LOGGER.info(f"Executing task for {total} photos.")
     for chunk in more_itertools.chunked(album, concurrent_workers*20):
         tasks = []
         for photo in chunk:
+            LOGGER.info(f"Executing task for photo {photo.filename} in current chunk")
             tasks.append(process_photos(photo, file_sizes, destination_path))
         LOGGER.info(f"Executing {len(tasks)} tasks in current chunk")
         looper = gather_with_concurrency(concurrent_workers, total, tasks)
-        loop.run_until_complete(looper)
-        LOGGER.info("Chunk completed, moving to the next")
-
-    # tasks = [process_photos(photo, file_sizes, destination_path) for photo in album]
-
+        result.extend(loop.run_until_complete(looper))
+        LOGGER.info("Chunk completed, moving to the next ")
+    return result
 
 
 def remove_obsolete(destination_path, files):
     """Remove local obsolete file."""
-    removed_paths = set()
+    removed_paths = list()
     if not (destination_path and files is not None):
         return removed_paths
     for path in Path(destination_path).rglob("*"):
@@ -161,7 +162,7 @@ def remove_obsolete(destination_path, files):
             if path.is_file():
                 LOGGER.info(f"Removing {local_file} ...")
                 path.unlink(missing_ok=True)
-                removed_paths.add(local_file)
+                removed_paths.append(local_file)
     return removed_paths
 
 
@@ -169,22 +170,22 @@ def sync_photos(config, photos):
     """Sync all photos."""
     destination_path = config_parser.prepare_photos_destination(config=config)
     filters = config_parser.get_photos_filters(config=config)
-    files = set()
+    files = list()
     if filters["albums"]:
         for album in iter(filters["albums"]):
-            sync_album(
+            files.extend(sync_album(
                 album=photos.albums[album],
                 destination_path=os.path.join(destination_path, album),
                 file_sizes=filters["file_sizes"],
                 config=config,
-            )
+            ))
     else:
-        sync_album(
+        files.extend(sync_album(
             album=photos.all,
             destination_path=os.path.join(destination_path, ""),
             file_sizes=filters["file_sizes"],
             config=config,
-        )
+        ))
     LOGGER.info("Photo sync completed")
     if config_parser.get_photos_remove_obsolete(config=config):
         remove_obsolete(destination_path, files)

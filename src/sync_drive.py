@@ -328,8 +328,8 @@ def sync_items(i, drive, destination_path, filters, root, files, ignore, config)
                 )
             )
         except Exception:
-        # Continue execution to next item, without crashing the app
-        pass
+            # Continue execution to next item, without crashing the app
+            pass
     elif item.type == "file":
         if wanted_parent_folder(
                 filters=filters["folders"]
