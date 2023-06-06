@@ -146,13 +146,16 @@ def sync_album(album, destination_path, file_sizes, config):
             tasks.append(process_photos(photo, file_sizes, destination_path))
         LOGGER.info(f"Executing {len(tasks)} tasks in current chunk")
         looper = gather_with_concurrency(concurrent_workers, total, tasks)
-        result.extend(loop.run_until_complete(looper))
+        loop_results = loop.run_until_complete(looper)
+        for loop_result in loop_results:
+            result.append(loop_result.pop())
         LOGGER.info("Chunk completed, moving to the next ")
     return result
 
 
 def remove_obsolete(destination_path, files):
     """Remove local obsolete file."""
+    LOGGER.info(f"Removing obsolete files")
     removed_paths = list()
     if not (destination_path and files is not None):
         return removed_paths
