@@ -56,13 +56,13 @@ def photo_exists(photo, file_size, local_path):
     if photo and local_path and os.path.isfile(local_path):
         local_size = os.path.getsize(local_path)
         remote_size = int(photo.versions[file_size]["size"])
-        LOGGER.info(
-            f"(Exists: {local_size == remote_size}) Local mTime -> {os.path.getmtime(local_path)}\nLocalSize "
-            f"-> {os.path.getsize(local_path)}\nRemoteSize ->{remote_size}\n"
-            f"RemoteDate -> {time.mktime(photo.added_date.timetuple())}")
+#        LOGGER.info(
+#            f"(Exists: {local_size == remote_size}) Local mTime -> {os.path.getmtime(local_path)}\nLocalSize "
+#            f"-> {os.path.getsize(local_path)}\nRemoteSize ->{remote_size}\n"
+#            f"RemoteDate -> {time.mktime(photo.added_date.timetuple())}")
 
         if local_size == remote_size:
-            LOGGER.debug(f"No changes detected. Skipping the file {local_path} ...")
+#            LOGGER.debug(f"No changes detected. Skipping the file {local_path} ...")
             return True
         else:
             LOGGER.debug(
@@ -75,17 +75,17 @@ def download_photo(photo, file_size, destination_path):
     """Download photo from server."""
     if not (photo and file_size and destination_path):
         return False
-    LOGGER.info(f"Downloading {destination_path} ...")
+#    LOGGER.info(f"Downloading {destination_path} ...")
     try:
         download = photo.download(file_size)
         with open(destination_path, "wb") as file_out:
             shutil.copyfileobj(download.raw, file_out)
-        LOGGER.info(f"Setting modified date to {photo.added_date}")
+#        LOGGER.info(f"Setting modified date to {photo.added_date}")
         local_modified_time = time.mktime(photo.added_date.timetuple())
         os.utime(destination_path, (local_modified_time, local_modified_time))
-        LOGGER.info(
-            f"{destination_path}: Remote date -> {photo.added_date} Converted Date -> {local_modified_time} "
-            f"Local mTime -> {os.path.getmtime(destination_path)}")
+#        LOGGER.info(
+#            f"{destination_path}: Remote date -> {photo.added_date} Converted Date -> {local_modified_time} "
+#            f"Local mTime -> {os.path.getmtime(destination_path)}")
     except (exceptions.ICloudPyAPIResponseException, FileNotFoundError, Exception) as e:
         LOGGER.error(f"Failed to download {destination_path}: {str(e)}")
         return False
@@ -119,7 +119,7 @@ def process_photo(photo, file_size, destination_path):
 
 def sync_album(album, destination_path, file_sizes, config):
     """Sync given album."""
-    result = list()
+    files = list()
     concurrent_workers = 10
     if config is not None and "photos" in config.keys() and "workers" in config["photos"].keys():
         concurrent_workers = config["photos"]["workers"]
@@ -127,7 +127,7 @@ def sync_album(album, destination_path, file_sizes, config):
     if not (album and destination_path and file_sizes):
         return None
     os.makedirs(destination_path, exist_ok=True)
-    LOGGER.info(f"Starting parallel download with {concurrent_workers} workers")
+    LOGGER.info(f"Starting Photos sync: parallel download with {concurrent_workers} workers")
 
     try:
         loop = asyncio.get_event_loop()
@@ -138,19 +138,21 @@ def sync_album(album, destination_path, file_sizes, config):
         else:  # pragma: no cover
             raise
     total = len(album)
-    LOGGER.info(f"Executing task for {total} photos.")
+#    LOGGER.info(f"Executing task for {total} photos.")
     for chunk in more_itertools.chunked(album, concurrent_workers*20):
         tasks = []
         for photo in chunk:
-            LOGGER.info(f"Executing task for photo {photo.filename} in current chunk")
+#            LOGGER.info(f"Executing task for photo {photo.filename} in current chunk")
             tasks.append(process_photos(photo, file_sizes, destination_path))
-        LOGGER.info(f"Executing {len(tasks)} tasks in current chunk")
-        looper = gather_with_concurrency(concurrent_workers, total, tasks)
+#        LOGGER.info(f"Executing {len(tasks)} tasks in current chunk")
+        looper = gather_with_concurrency(concurrent_workers, tasks)
         loop_results = loop.run_until_complete(looper)
         for loop_result in loop_results:
-            result.append(loop_result.pop())
-        LOGGER.info("Chunk completed, moving to the next ")
-    return result
+            if not (len(loop_result) == 0):
+                files.append(loop_result.pop())
+#        LOGGER.info("Chunk completed, moving to the next ")
+        LOGGER.info(f"Done {str(round(len(files) * 100 / total, 1))}%")
+    return files
 
 
 def remove_obsolete(destination_path, files):

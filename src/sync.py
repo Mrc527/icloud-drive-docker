@@ -16,6 +16,7 @@ from src import (
     sync_drive,
     sync_photos,
 )
+from src.tools import patch_http_connection_pool, patch_https_connection_pool
 from src.usage import alive
 
 
@@ -53,6 +54,8 @@ def sync():
     sleep_for = 10
     while True:
         config = read_config()
+        patch_http_connection_pool(maxsize=30)
+        patch_https_connection_pool(maxsize=30)
         alive(config=config)
         username = config_parser.get_username(config=config)
         if username:

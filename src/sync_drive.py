@@ -15,7 +15,6 @@ import asyncio
 from src import config_parser, LOGGER
 from src.tools import background, gather_with_concurrency
 
-
 import magic
 from pathspec import PathSpec
 
@@ -189,7 +188,7 @@ def download_file(item, local_file):
     """Download file from server."""
     if not (item and local_file):
         return False
-    LOGGER.info(f"Downloading {local_file} ...")
+#    LOGGER.info(f"Downloading {local_file} ...")
     try:
         with item.open(stream=True) as response:
             with open(local_file, "wb") as file_out:
@@ -280,10 +279,11 @@ def sync_directory(
             tasks = []
             for item in chunk:
                 tasks.append(sync_items(item, drive, destination_path, filters, root, files, ignore, config))
-            LOGGER.info(f"Executing {len(tasks)} tasks in current chunk")
-            looper = gather_with_concurrency(concurrent_workers, total, tasks)
+#            LOGGER.info(f"Executing {len(tasks)} tasks in current chunk")
+            looper = gather_with_concurrency(concurrent_workers, tasks)
             loop.run_until_complete(looper)
-            LOGGER.info("Chunk completed, moving to the next")
+#            LOGGER.info("Chunk completed, moving to the next")
+            LOGGER.info(f"Done {str(round(len(files) * 100 / total, 1))}%")
 
 
         # looper = gather_with_concurrency(concurrent_workers, *[sync_items(i, drive, destination_path, filters, root,
